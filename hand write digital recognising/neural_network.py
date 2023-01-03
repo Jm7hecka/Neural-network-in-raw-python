@@ -3,7 +3,8 @@ from keras.datasets import mnist #include dataset
 from matplotlib import pyplot 
 
 def sigmoid(x): #activative function
-    return 1/ (1+np.exp(-x))
+    x = np.clip(x, -500, 500)
+    return 1 / (1 + np.exp(-x))
 
 def sigmoid_derivative(x): #find the rate of change of sigmoid function
     return x * (1-x)       #finding derivation is limit of difference quotient, which is f(x+h) - f(x) / h
@@ -54,11 +55,12 @@ class Convulational_neural_network():
     
    
     def forward(self, x): #forward propagation, find output from input value
+        self.output = []
         self.layer_1 = relu(np.dot(x, self.weight_1) + self.bias_1) #hidden layer process
         self.output = sigmoid(np.dot(self.layer_1, self.weight_2 + self.bias_2)) #output layer process
     
     def backward(self, x, y): #changing weight and bias value base on error rate 
-        x = x.reshape(-1, len(x)) #turn specific image into 1D array
+        x = x.reshape(-1, len(x))
         error_2 = y - self.output #find error rate of layer 2 by doing subtraction between actual output and predicted output
         gradient_decent_2 = error_2 * sigmoid_derivative(self.output) #finding gradient decent(mx) of layer 2
         error_1 = gradient_decent_2.dot(self.weight_2.T) #find error rate of layer 1
@@ -71,10 +73,11 @@ class Convulational_neural_network():
     def train(self, epochs): 
         print('Training data...')
         y = self.transformLabels(self.train_y) #transform all train label into one-hot value
-        for i in range(epochs): #epochs represents how many train data will be done
-            self.forward(self.train_X[i])
-            self.backward(self.train_X[i], y[i])
-            if i % 100 == 0: #find loss for each 100 epochs
+        for i in range(epochs): #epochs represents how many times for all train data will be tested
+            for j in range(len(self.train_X)):
+                self.forward(self.train_X[j])
+                self.backward(self.train_X[j], y[j])
+            if i % 1== 0: #find loss for each 100 epochs
                 print(f"Epoch {i}: Loss = {mean_squared_error(self.output, y)}")
                 
         print(f"Training done. Total Epochs: {epochs} \n Final Loss = {mean_squared_error(self.output, y)}")
@@ -101,10 +104,11 @@ class Convulational_neural_network():
         print(f"Image shows: {result}")
         self.showimg(self.imgdata[num])
 
+
 if __name__ == '__main__':
     (train_X, train_y),(test_X, test_y) = mnist.load_data()
-    ml = Convulational_neural_network(train_X, train_y, test_X, test_y, 0.1)
-    ml.train(60000)
+    ml = Convulational_neural_network(train_X, train_y, test_X, test_y, 0.01)
+    ml.train(1)
     ml.test_data()
     while True:
         number = int(input("Enter number from 1-10000:"))
