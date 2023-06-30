@@ -105,8 +105,8 @@ class MLP():
             for j in range(len(self.train_X)):
                 self.forward(self.train_X[j])
                 self.backpropagation(self.train_X[j], y[j])
-            if i % 1== 0: #find loss for each 100 epochs
-                print(f"Epoch {i}: Loss = {self.mean_squared_error(self.output, y)}")
+            if i % 1== 0: #find loss for each epochs
+                print(f"Epoch {i+1}: Loss = {self.mean_squared_error(self.output, y)}")
                 
         print(f"Training done. Total Epochs: {epochs} \n Final Loss = {self.mean_squared_error(self.output, y)}")
     
