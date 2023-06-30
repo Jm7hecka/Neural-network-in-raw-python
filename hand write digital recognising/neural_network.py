@@ -70,28 +70,38 @@ class MLP():
         if self.twolayers:
             self.layer_1 = self.function.relu(np.dot(x, self.weight_1) + self.bias_1) #hidden layer 1 process
             self.layer_2 = self.function.relu(np.dot(self.layer_1, self.weight_2) + self.bias_2) #hidden layer 2 process
+            self.output = self.function.sigmoid(np.dot(self.layer_2, self.weight_3 + self.bias_3)) #output layer process
         else:
-            self.layer_2 = self.function.relu(np.dot(x, self.weight_2) + self.bias_2) #hidden layer 2 process
-        self.output = self.function.sigmoid(np.dot(self.layer_2, self.weight_3 + self.bias_3)) #output layer process
+            self.layer_1 = self.function.relu(np.dot(x, self.weight_1) + self.bias_1) #hidden layer 2 process
+            self.output = self.function.sigmoid(np.dot(self.layer_1, self.weight_2 + self.bias_2)) #output layer process
+        
     
     def backpropagation(self, x, y): #changing weight and bias value base on error rate 
         x = x.reshape(-1, len(x))
-        error_3 = y - self.output #find error rate of output layer by doing subtraction between actual output and predicted output
-        gradient_decent_3 = error_3 * self.function.sigmoid_derivative(self.output) #finding gradient decent(mx) of output layer
-        error_2 = gradient_decent_3.dot(self.weight_3.T) #find error rate of hidden layer 2
-        gradient_decent_2 = error_2 * self.function.relu_derivative(self.layer_2) #find gradient decent of hidden layer 2
         if self.twolayers:
+            error_3 = y - self.output #find error rate of output layer by doing subtraction between actual output and predicted output
+            gradient_decent_3 = error_3 * self.function.sigmoid_derivative(self.output) #finding gradient decent(mx) of output layer
+            error_2 = gradient_decent_3.dot(self.weight_3.T) #find error rate of hidden layer 2
+            gradient_decent_2 = error_2 * self.function.relu_derivative(self.layer_2) #find gradient decent of hidden layer 2
             error_1 = gradient_decent_2.dot(self.weight_2.T) #find error rate of layer 1
             gradient_decent_1 = error_1 * self.function.relu_derivative(self.layer_1) #find gradient decent of layer 1
             self.weight_2 += self.layer_1.T.dot(gradient_decent_2) * self.learning_rate #update weight value of output layer
             self.weight_1 += x.T.dot(gradient_decent_1) * self.learning_rate #update weight value of layer 1
-            self.bias_1 += np.sum(gradient_decent_1, axis=0) * self.learning_rate #update bias value of layer 1  
+            self.bias_1 += np.sum(gradient_decent_1, axis=0) * self.learning_rate #update bias value of layer 1
+            self.weight_3 += self.layer_2.T.dot(gradient_decent_3) * self.learning_rate #update weight value of output layer
+            self.bias_3 += np.sum(gradient_decent_3, axis=0) * self.learning_rate #update bias value of output layer 
+            self.bias_2 += np.sum(gradient_decent_2, axis=0) * self.learning_rate #update bias value of hidden layer 2  
         else:
-            self.weight_2 += x.T.dot(gradient_decent_2) * self.learning_rate #update weight value of output layer    
-        self.weight_3 += self.layer_2.T.dot(gradient_decent_3) * self.learning_rate #update weight value of output layer
-        self.bias_3 += np.sum(gradient_decent_3, axis=0) * self.learning_rate #update bias value of output layer 
-        self.bias_2 += np.sum(gradient_decent_2, axis=0) * self.learning_rate #update bias value of hidden layer 2
-        
+            error_2 = y - self.output #find error rate of output layer by doing subtraction between actual output and predicted output
+            gradient_decent_2 = error_2 * self.function.sigmoid_derivative(self.output) #finding gradient decent(mx) of output layer
+            error_1 = gradient_decent_2.dot(self.weight_2.T) #find error rate of hidden layer 2
+            gradient_decent_1 = error_1 * self.function.relu_derivative(self.layer_1) #find gradient decent of hidden layer 2
+            self.weight_2 += self.layer_1.T.dot(gradient_decent_2) * self.learning_rate #update weight value of layer 2
+            self.weight_1 += x.T.dot(gradient_decent_1) * self.learning_rate #update weight value of layer 1
+            self.bias_2 += np.sum(gradient_decent_2, axis=0) * self.learning_rate #update bias value of layer 2
+            self.bias_1 += np.sum(gradient_decent_1, axis=0) * self.learning_rate #update bias value of layer 1  
+            
+            
 
     def train(self, input_neuron, hidden_neuron, output_neuron, learning_rate, epochs): 
         print('Training data...')
@@ -114,10 +124,11 @@ class MLP():
             print('ERROR: Only 2 hidden layers can be used')
             return 0      
         else:
-            self.weight_2 = 0.02 * np.random.random((self.input, self.hidden[0])) - 0.01 #define weight for hidden layer 1
-            self.weight_3 = 0.2 * np.random.random((self.hidden[0], self.output)) - 0.1 #defile weight for hidden layer 2
-            self.bias_2 = np.zeros((1, self.hidden[0])) #define bias for hidden layer 1  
-            self.bias_3 = np.zeros((1, self.output)) #define bias for hidden layer 2
+            self.weight_1 = 0.02 * np.random.random((self.input, self.hidden[0])) - 0.01 #define weight for hidden layer 1
+            self.weight_2 = 0.2 * np.random.random((self.hidden[0], self.output)) - 0.1 #defile weight for hidden layer 2
+            self.bias_1 = np.zeros((1, self.hidden[0])) #define bias for hidden layer 1  
+            self.bias_2 = np.zeros((1, self.output)) #define bias for hidden layer 2
+            
         y = self.transformLabels(self.train_y) #transform all train label into one-hot value
         for i in range(epochs): #epochs represents how many times train data will be tested
             for j in range(len(self.train_X)):
@@ -151,33 +162,23 @@ class MLP():
             print("ERROR: File must be CSV file.")
         with open(filename, 'w', newline='') as csvf:
             writer = csv.writer(csvf)
+            #save layer 1 model
+            writer.writerow(['Layer 1 Weight'])
+            writer.writerows(self.weight_1)
+            writer.writerow(['Layer 1 Bias'])
+            writer.writerows(self.bias_1)
+            #save layer 2 model
+            writer.writerow(['Layer 2 Weight'])
+            writer.writerows(self.weight_2)
+            writer.writerow(['Layer 2 Bias'])
+            writer.writerows(self.bias_2)
             if self.twolayers:
-                #save layer 1 model
-                writer.writerow(['Layer 1 Weight'])
-                writer.writerows(self.weight_1)
-                writer.writerow(['Layer 1 Bias'])
-                writer.writerows(self.bias_1)
-                #save layer 2 model
-                writer.writerow(['Layer 2 Weight'])
-                writer.writerows(self.weight_2)
-                writer.writerow(['Layer 2 Bias'])
-                writer.writerows(self.bias_2)
                 #save layer 3 model
                 writer.writerow(['Layer 3 Weight'])
                 writer.writerows(self.weight_3)
                 writer.writerow(['Layer 3 Bias'])
                 writer.writerows(self.bias_3)
-            else:
-                #save layer 1 model
-                writer.writerow(['Layer 1 Weight'])
-                writer.writerows(self.weight_2)
-                writer.writerow(['Layer 1 Bias'])
-                writer.writerows(self.bias_2)
-                #save layer 2 model
-                writer.writerow(['Layer 2 Weight'])
-                writer.writerows(self.weight_3)
-                writer.writerow(['Layer 2 Bias'])
-                writer.writerows(self.bias_3)
+            
         print('Trained model saved.')
         self.load_model(filename)
 
@@ -211,15 +212,9 @@ class MLP():
                     elif layer == 'Layer 3 Bias':
                         self.bias_3 = np.array([float(val) for val in row])
                 if self.twolayers:
-                    self.weight_1 = np.array(self.weight_1)
-                    self.weight_2 = np.array(self.weight_2)
                     self.weight_3 = np.array(self.weight_3)
-                else:
-                    self.bias_3 = self.bias_2
-                    self.bias_2 = self.bias_1
-                    self.weight_3 = np.array(self.weight_2)
-                    self.weight_2 = np.array(self.weight_1)
-                    
+                self.weight_1 = np.array(self.weight_1)
+                self.weight_2 = np.array(self.weight_2)
             print("Trained model loaded.")
             #except:
              #   print('ERROR: File not found')
