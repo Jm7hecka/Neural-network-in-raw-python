@@ -1,0 +1,32 @@
+
+Convolutional neural network plannning
+
+Functions:           Input taken
+    __init__ - input size: list, output size:list, 
+    Conv - filter, kernal size: list, activation function: string
+            inner: input value
+    MaxPooling - kernal size
+            inner: input value
+    Use_activation - input, string, derivative:bool
+    Forward - input
+    Backpropagation - input
+    LabelConvert - hotlabel: list
+            inner - value: list
+    LazyTrain - epoch, learn rate, Train data
+    TestData - test data
+    SaveModel - filename
+    LoadModel - filename
+    LazyPredict - 
+
+value: 
+    weight
+    bias
+    kernal
+    loss
+    gradient
+    
+
+when load model:
+        self.kernal = kernal in model
+
+when Conv: 
