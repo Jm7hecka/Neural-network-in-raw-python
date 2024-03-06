@@ -7,7 +7,7 @@ class ProgressBar:
         self.accuracy = 0
         self.epochs = epoch
         self.total_data = total_data
-
+        self.time = None
     def run(self):
         
         self.pbar = tqdm(total=self.total_data, desc=' ', unit='data', dynamic_ncols=True, bar_format="[{n_fmt}/{total_fmt}] |{bar}| {elapsed} | {unit} ")
@@ -16,6 +16,8 @@ class ProgressBar:
             self.pbar.unit = f'Loss: {loss:.4f} Accuracy: {accuracy:.4f}'
             self.pbar.update(1)
             if self.pbar.n == self.total_data:
+                t = self.pbar.format_dict['elapsed']
+                self.time = self.pbar.format_interval(t)
                 tqdm.close(self.pbar)
         return update
 

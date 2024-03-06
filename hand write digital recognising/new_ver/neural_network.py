@@ -20,6 +20,7 @@ class MLP():
         self.layer_output = []
         self.label_classes = []
         self.isclasses = False
+        self.TrainOverview = "" 
         self.correct = 0
         self.batch_size = 0
         self.mini_batch = []
@@ -43,7 +44,7 @@ class MLP():
             self.label_classes = label_class
 
     def mean_squared_error(self, y_pred, y_actual):
-        return np.mean((y_actual - y_pred) **2) 
+        return np.mean((y_actual - y_pred) ** 2) 
     
     def accuracy(self, x, y, total):
     # Calculate accuracy
@@ -106,7 +107,7 @@ class MLP():
         self.batch_gradient_descent = [None, None]
         error = y_actual - layer_output[-1]
         gradient_descent = error * af.Activation_function(layer_output[-1], 'sigmoid', True)
-        gradient_w[-1] = np.sum([np.dot(self.layer_output[-2][j].reshape(1, -1).T, gradient_descent[j].reshape(1, -1)) for j in range(self.batch_size)], axis=0)
+        gradient_w[-1] = np.sum([np.matmul(self.layer_output[-2][j].reshape(1, -1).T, gradient_descent[j].reshape(1, -1)) for j in range(self.batch_size)], axis=0)
         gradient_b[-1] = np.sum((gradient_descent[j] for j in range(self.batch_size)), axis=0)
         
         for i in range(len(self.layer_output)-2, 0, -1):
@@ -154,9 +155,8 @@ class MLP():
                 accuracy = self.accuracy(self.Reform(self.output[-1][-1], self.label_classes), self.Reform(self.mini_batch[1][j][-1], self.label_classes), j)
                 loss = self.mean_squared_error(self.output[-1][-1], self.mini_batch[1][j][-1])
                 s(loss, accuracy)
-            
-        print(f"Training done. Total Epochs: {epochs} \n Final Loss = {self.mean_squared_error(self.output[-1][-1], self.mini_batch[1][j])}")
-        print(f"Layers: {layer_neuron}, Learning rate:{learning_rate}, Batch size: {batch_size}, Total Batch: {len(self.mini_batch[0])}")
+        self.TrainOverview = f"Total Epochs: {epochs} | Time taken: {p.time} | Accuracy = {accuracy} | Final Loss = {self.mean_squared_error(self.output[-1][-1], self.mini_batch[1][j])} \n Layers: {layer_neuron}, Learning rate:{learning_rate}, Batch size: {batch_size}, Total Batch: {len(self.mini_batch[0])} "
+        print(f"Training done. {self.TrainOverview}")
     
     def TestData(self): #find the accuracy
         if self.test_X.all() == None:
